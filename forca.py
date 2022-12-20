@@ -18,56 +18,104 @@ def menu():
     print('Insira o número 3 para limpar o arquivo.')
     print('Insira o número 4 para iniciar o game da forca.')
     print('Insira o número 5 para encerrar.')
-    user_input = input('Insira o número: ')
+    user_input = input('Insira o número: ').replace(' ','')
+    lines = count_lines()
 
     if user_input == '1':
-        return insert_words(), load_file()
+        return insert_and_verify(lines),menu()
+
     if user_input == '2':
-        return load_file(), menu()
+       return load_file(lines),menu()
+
     if user_input == '3':
         return clean_file(), menu()
 
+    if user_input == '4':
+        return game(), menu()
+    if user_input == '5':
+        return
 
-def insert_words():
+def count_lines():
+    arq = open('palavras.txt', 'r', encoding='utf-8')
+    arq.seek(0,0)
+    arq.read()
+    lines = arq.readlines()
+    return lines
+
+
+def insert_and_verify():
+    lines = count_lines()
     print('Digite "0" e aperte ENTER para encerrar ou apenas dê um ENTER para continuar: ')
-    user_input = str(input('Insira palavras para serem usadas no game da forca: '))
-
+    print("Digite 10 palavras para o jogo da forca")
     palavras_arq = open('palavras.txt', 'w', encoding='utf-8')
 
-    while user_input != '0':
-        palavras_arq.write(user_input)
-        palavras_arq.write('\n')
-        user_input = str(input('Insira palavras para serem usadas no game da forca: '))
-
+    need_lines = 10 - len(lines)
+    while need_lines > 0:
+        user_input = str(input('Insira palavras para serem usadas no game da forca: ')).replace(' ','')
+        if user_input != '0':
+            palavras_arq.write(user_input + '\n')
+            need_lines = need_lines -1
+        elif need_lines > 0 and user_input == '0':
+            print("O arquivo ainda não está pronto para o jogo! \n São necessárias",need_lines,"palavras")
+    print("O arquivo está pronto para o jogo!")
+    return(list)
+        
 
 def load_file():
-    with open('palavras.txt', 'r', encoding='utf-8') as arq:
-        arq.read()
-        arq.seek(0, 0)
-        l_arq = arq.readlines()
-
-        lista_arq = []
-
-        if len(l_arq) < 10:
-            need_lines = 10 - len(l_arq)
-            print('O arquivo parace não conter aquivos ou menos de 10...')
-            print('Você ainda precisa de mais', need_lines, 'palavras para continuar...')
-        for word in l_arq:
-            lista_arq.append(word.replace('\n', ''))
-        if need_lines != 0:
-            for i in range(need_lines):
-                with open('palavras.txt', 'a') as arq2_app:
-                    user_input = input('Insira as palavras restantes: ')
-                    arq2_app.write(user_input + '\n')
-                    lista_arq.append(user_input)
-        # for word in lista_arq:
-        #     arq.write(word + '\n')
-
+    lines = count_lines()
+    arq = open('palavras.txt', 'r', encoding='utf-8')
+    arq.seek(0,0)
+    arq.read()
+    arq.seek(0,0)
+    lines = arq.readlines()
+    list_arq=[]
+    for i in range(len(lines)):
+        list_arq.append(lines[i].replace('\n',''))
+    return(list_arq),print("Seu arquivo foi carregado para o jogo e o jogo já pode ser iniciado!")
 
 def clean_file():
     with open('palavras.txt', 'w') as arqs:
         arqs.write('')
     print('File erased!')
 
+def game():
+    list_game = load_file()
+    import random
+    import time
+    print('\n','*'*30, "Bem vindo ao Jogo da Forca!", '*'*30,'\n')    
+    word_game = random.choice(list_game[0])    
+    list_guess = []
+    for i in range(len(word_game)):
+        list_guess.append('_')    
+    list_game = []
+    for i in word_game:
+        list_game.append(i)    
+    time.sleep(0.3)
+    print("A palavra escolhida tem",len(list_guess),"letras...")
+    time.sleep(0.5)
+    list_error = []
+    list_repeat = []
 
+    print("Palavra a adivinhar:",*list_guess)
+    while list_game != list_guess:
+        guess = input("Digite seu chute: ").replace(' ','')
+        if len(guess) > 1 and guess == word_game:
+            break
+        elif len(guess) > 1 and guess != word_game:
+            print("Seu chute está errado. Tente outro ou continue tentando...")
+        while guess in list_repeat:
+            guess = input("Você já digitou essa letra, por favor, digite outro chute: ").replace(' ','')
+        list_repeat.append(guess)
+        if guess in list_game:
+            print("\nVocê acertou uma das letras!!")
+            for i in range(len(list_game)):
+                if list_game[i] == guess:
+                    list_guess[i] = list_game[i]         
+            print("Palavra:",*list_guess)
+        else:
+            list_error.append(guess+' -')
+            print("\nVocê errou! Letras erradas totais:",*list_error)         
+    print('\n'+'*'*30)
+    print("\nParabéns, você acertou, a palavra era:",*list_game)
+    print('\n'+'*'*30+'\n')
 main()
